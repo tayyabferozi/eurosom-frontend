@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="signin.css" />
+    <title>Chatgpt Eurosom</title>
+  </head>
+  <body>
+    <form id="signup-form">
+      <img src="eurosomcloud_logo.jpg" alt="Eurosom Logo" class="logo" />
+
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="phone">Phone Number:</label>
+      <input type="tel" id="phone" name="phone" pattern="[0-9]+" required />
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required />
+
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required />
+
+      <button type="submit" id="submit-btn">Sign up</button>
+
+      <div class="alert hidden">
+        Thank you for registering Eurosom ChatGPT. Please check your email for
+        more information ..... Make sure to check for spam/junk folder too!
+      </div>
+
+      <p>Already have an account? <a href="sign-in.html">Sign in</a></p>
+
+      <p>Contact us for verification:</p>
+      <p>
+        <a href="tel:+252619255803">+252 61 925 5803</a>
+      </p>
+      <p><a href="tel:+252626137777">+252 62 613 7777</a></p>
+      <p>
+        Email:
+        <a href="mailto:info@eurosom.com">info@eurosom.com</a>
+      </p>
+    </form>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+      // const BACKEND_URI = "http://localhost:5000";
+      const BACKEND_URI = "https://chat.eurosom.com";
+
+      // Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyD9Yu33oCbBfX6QFA3mB32hY-NboGU42Fc",
+        authDomain: "testgpt-65b2b.firebaseapp.com",
+        projectId: "testgpt-65b2b",
+        storageBucket: "testgpt-65b2b.appspot.com",
+        messagingSenderId: "1067958736606",
+        appId: "1:1067958736606:web:aefd75ab0da6cff677944f",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Get form and submit button elements
+      const form = document.getElementById("signup-form");
+      const submitBtn = document.getElementById("submit-btn");
+
+      // Get a reference to the Firestore database
+      const db = firebase.firestore();
+
+      // Handle form submission
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        submitBtn.innerHTML = "Loading...";
+
+        // Get user input
+        const name = form.name.value;
+        const phone = form.phone.value;
+        const password = form.password.value;
+        const email = form.email.value;
+        const alertMsgDiv = document.querySelector(".alert");
+
+        // Create user with email and password
+        firebase
+          .auth()
+          .createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            // Signed in
+            var user = userCredential.user;
+            console.log(user);
+
+            // store name in Firestore
+
+            // Store phone number in Firestore
+            db.collection("users")
+              .doc(user.uid)
+              .set({
+                name: name,
+                email: email,
+                phone: phone,
+              })
+              .then(() => {
+                // Update user profile with phone number
+                user
+                  .updateProfile({
+                    displayName: phone,
+                  })
+                  .then(async () => {
+                    // Profile updated
+                    try {
+                      const resp = await axios.post(
+                        `${BACKEND_URI}/email-admin`,
+                        {
+                          email,
+                        }
+                      );
+                      // alert(
+                      //   "Thank you for registering Eurosom ChatGPT. Please check your email for more information ..... Make sure to check for spam/junk folder too!"
+                      // );
+                      alertMsgDiv.classList.remove("hidden");
+                      // window.location.href = "index.html";
+                    } catch (err) {
+                      console.log(err);
+                    }
+                  })
+                  .catch((error) => {
+                    // An error occurred
+                    console.error(error);
+                  });
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+          })
+          .catch((error) => {
+            // Handle errors
+            console.error(error);
+
+            // Get error message
+            const errorMessage = error.message;
+
+            // Display error message
+            alert(errorMessage);
+          })
+          .finally(() => {
+            submitBtn.innerHTML = "Sign up";
+          });
+      });
+    </script>
+  </body>
+</html>
