@@ -122,7 +122,8 @@ h1 {
   }
 
   .message.user {
-    background: #e41c3e;
+    /* background: #e41c3e; */
+    background: #3a2eff;
     color: #fff;
   }
 }

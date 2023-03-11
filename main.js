@@ -22,7 +22,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
     // User is signed in, so you can allow access to your main.js page
     console.log("User is logged in.");
 
-    const userEmail = user.email;
+    const userEmail = user.email.toLowerCase();
     const querySnapshot = await usersRef.where("email", "==", userEmail).get();
     let foundId, foundUser;
     querySnapshot.forEach((doc) => {
@@ -32,10 +32,15 @@ firebase.auth().onAuthStateChanged(async function (user) {
       foundUser = doc.data();
     });
 
-    if (!foundUser.isAccepted) {
-      window.location.href = "sign-in.html";
-    } else {
-      document.querySelector(".loader").remove();
+    try {
+      if (!foundUser.isAccepted) {
+        window.location.href = "sign-in.html";
+      } else {
+        document.querySelector(".loader").remove();
+      }
+    } catch (err) {
+      console.log(err);
+      window.location = "index.html";
     }
   } else {
     // User is not signed in, so you should redirect them to the sign-in page
